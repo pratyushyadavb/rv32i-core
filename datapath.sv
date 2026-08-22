@@ -143,7 +143,9 @@ module datapath #(parameter DATAWIDTH = 32)
     output logic [6:0] opcode,
     output logic [2:0] funct3,
     output logic [6:0] funct7,
-    output logic [31:0] rd1_tb, rd2_tb, wd3_tb 
+    output logic [31:0] rd1_tb, rd2_tb, wd3_tb,
+    output logic [4:0] x1_tb, x2_tb, x3_tb,
+    output logic [31:0] imm_tb, pc_tb, instr_tb
 );
     logic [31:0] pc, pc_new;
     logic [31:0] instr;
@@ -163,6 +165,11 @@ module datapath #(parameter DATAWIDTH = 32)
         else if (immcontrol == 2'b10) mainimm = {instr[31], instr[7], instr[30:25], instr[11:8]};
     end
 
+    assign instr_tb = instr;
+    assign pc_tb = pc;
+    assign x1_tb = instr[19:15];
+    assign x2_tb = instr[24:20];
+    assign x3_tb = instr[11:7];
     assign rd1_tb = rd1;
     assign rd2_tb = rd2;
     assign wd3_tb = wd3;
@@ -177,6 +184,7 @@ module datapath #(parameter DATAWIDTH = 32)
     assign forbeq = (signext << 1) + pc;
     assign pcplus4 = pc + 4;
     assign pc_new = (branch & zero) ? forbeq : pcplus4;
+    assign imm_tb = signext;
 
     always_ff @ (posedge clock, posedge reset)
         if (reset) pc <= 0;
@@ -265,7 +273,7 @@ module alu_decoder(
                     else if (funct7 == 7'b0100000) alucontrol = 3'b001;
                     end
             3'b100 : alucontrol = 3'b010;
-            3'b110 :  alucontrol = 3'b011;
+            3'b110 : alucontrol = 3'b011;
             3'b111 : alucontrol = 3'b100;
             3'b010 : alucontrol = 3'b101;
             endcase
@@ -292,7 +300,9 @@ endmodule
 
 module processor(
     input clock, reset,
-    output logic [31:0] rd1, rd2, wd3
+    output logic [31:0] rd1, rd2, wd3,
+    output logic [4:0] x1, x2, x3,
+    output logic [31:0] signed_imm, pc, instr
 );
     logic regwrite, alusrcb, branch, we, re, regdatadst;
     logic [1:0] immcontrol;
@@ -303,7 +313,8 @@ module processor(
     datapath main_datapath(.clock(clock), .reset(reset), .regwrite(regwrite), .immcontrol(immcontrol),
                            .alusrcb(alusrcb), .branch(branch), .re(re), .we(we),
                            .regdatadst(regdatadst), .alucontrol(alucontrol), .opcode(opcode),
-                           .funct3(funct3), .funct7(funct7), .rd1_tb(rd1), .rd2_tb(rd2), .wd3_tb(wd3));
+                           .funct3(funct3), .funct7(funct7), .rd1_tb(rd1), .rd2_tb(rd2), .wd3_tb(wd3),
+                           .x1_tb(x1), .x2_tb(x2), .x3_tb(x3), .imm_tb(signed_imm), .pc_tb(pc), .instr_tb(instr));
     control_unit main_controlunit(.opcode(opcode), .funct3(funct3), .funct7(funct7),
                                   .alucontrol(alucontrol), .regwrite(regwrite),
                                   .alusrcb(alusrcb), .we(we), .re(re), .regdatadst(regdatadst),
