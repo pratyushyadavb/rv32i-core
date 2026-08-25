@@ -1,21 +1,20 @@
 module test(
     input logic [3:0] a,
+    input logic [3:0] b,
     output logic [3:0] y
 );
-    logic [3:0] ram [0:15];
-
-    assign ram[0] = 4'b0101;
-    assign ram[1] = 4'b1100;
-  	assign ram[6] = 4'b0111;
-
-    assign y = ram[a];
+    always_comb begin
+        if ($signed(a) < $signed(b)) y = '1;
+        else y = '0;
+    end
 endmodule
 
 module test_tb;
     logic [3:0] a;
+    logic [3:0] b;
   	logic [3:0] y;
 
-    test dut(.a(a), .y(y));
+    test dut(.a(a), .y(y), .b(b));
 
     initial begin
         $dumpfile("dump.vcd");
@@ -24,10 +23,12 @@ module test_tb;
 
     initial begin
         a = '0;
+        b = '0;
         #10;
         a = 4'd6;
+        b = 4'd10;
         #10;
-        a = 4'd1;
-        #10;
+
+        $finish;
     end
 endmodule
