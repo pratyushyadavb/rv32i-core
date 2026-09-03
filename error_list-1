@@ -1,0 +1,55 @@
+xrun: 25.03-s001: (c) Copyright 1995-2025 Cadence Design Systems, Inc.
+            4'b1001: ext_result = {1'b0, (srca < srcb) ? 32'b1 : 32'b0}; //sltu
+                                             |
+xmvlog: *E,UNDIDN (design.sv,121|45): 'srca': undeclared identifier [12.5(IEEE)].
+            4'b1001: ext_result = {1'b0, (srca < srcb) ? 32'b1 : 32'b0}; //sltu
+                                                    |
+xmvlog: *E,UNDIDN (design.sv,121|52): 'srcb': undeclared identifier [12.5(IEEE)].
+    logic [31:0] alusrca, alusrcb, aluout, alulatch;
+                                                  |
+xmvlog: *E,DUPIDN (design.sv,178|50): identifier 'alulatch' previously declared in file design.sv at line 170 [12.5(IEEE)].
+    branch_selector main_branchselector(.opcode(opcode), .funct3(funct3), .carry(carry), .zero(zero),
+                                                                                                  |
+xmvlog: *E,DUPIMP (design.sv,166|98): Identifier 'zero', implicitly declared here, first as a wire, is subsequently redeclared.
+    logic zero, overflow, negative, carry;
+             |
+xmvlog: *E,DUPIDN (design.sv,179|13): identifier 'zero' previously declared in file design.sv at line 166 [12.5(IEEE)].
+                                        .negative(negative), .overflow(overflow), .branch(branch));
+                                                                              |
+xmvlog: *E,DUPIMP (design.sv,167|78): Identifier 'overflow', implicitly declared here, first as a wire, is subsequently redeclared.
+    logic zero, overflow, negative, carry;
+                       |
+xmvlog: *E,DUPIDN (design.sv,179|23): identifier 'overflow' previously declared in file design.sv at line 167 [12.5(IEEE)].
+                                        .negative(negative), .overflow(overflow), .branch(branch));
+                                                         |
+xmvlog: *E,DUPIMP (design.sv,167|57): Identifier 'negative', implicitly declared here, first as a wire, is subsequently redeclared.
+    logic zero, overflow, negative, carry;
+                                 |
+xmvlog: *E,DUPIDN (design.sv,179|33): identifier 'negative' previously declared in file design.sv at line 167 [12.5(IEEE)].
+    branch_selector main_branchselector(.opcode(opcode), .funct3(funct3), .carry(carry), .zero(zero),
+                                                                                     |
+xmvlog: *E,DUPIMP (design.sv,166|85): Identifier 'carry', implicitly declared here, first as a wire, is subsequently redeclared.
+    logic zero, overflow, negative, carry;
+                                        |
+xmvlog: *E,DUPIDN (design.sv,179|40): identifier 'carry' previously declared in file design.sv at line 166 [12.5(IEEE)].
+            wd3 = '1;
+              |
+xmvlog: *E,UNDIDN (design.sv,310|14): 'wd3': undeclared identifier [12.5(IEEE)].
+            wd3 = '1;
+              |
+xmvlog: *E,UNDIDN (design.sv,342|14): 'wd3': undeclared identifier [12.5(IEEE)].
+            wd3 = '1;
+              |
+xmvlog: *E,UNDIDN (design.sv,368|14): 'wd3': undeclared identifier [12.5(IEEE)].
+        S9 : nexstate = S0;
+                    |
+xmvlog: *E,UNDIDN (design.sv,396|20): 'nexstate': undeclared identifier [12.5(IEEE)].
+            3'd5 : alucontrol = begin
+                                    |
+xmvlog: *E,ILLPRI (design.sv,427|36): illegal expression primary [4.2(IEEE)].
+);
+|
+xmvlog: *E,NULLLP (design.sv,448|0): empty/illegal list of ports [A.1.4(IEEE-2001)].
+xrun: *E,VLGERR: An error occurred during parsing.  Review the log file for errors with the code *E and fix those identified problems to proceed.  Exiting with code (status 1).
+TOOL:	xrun	25.03-s001: Exiting on Sep 02, 2026 at 11:17:03 EDT  (total: 00:00:01)
+Exit code expected: 0, received: 1

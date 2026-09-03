@@ -1,6 +1,7 @@
 package definitions;
     typedef enum {lw, sw, add, sub, xorfunc, orfunc, andfunc, sll, srl, sra, slt, sltu, beq, addi,
-                  bne, blt, bge, bltu, bgeu, jal, jalr, lui, auipc} instruction_t;
+                  bne, blt, bge, bltu, bgeu, jal, jalr, lui, auipc, lb, lh, lbu, lhu,
+                  sb, sh} instruction_t;
 endpackage
 
 import definitions::*;
@@ -20,9 +21,53 @@ module assemblytranslator(
             machinecode[19:15] = rs1;
             machinecode[31:20] = imm;
         end
+        lb : begin
+            machinecode[6:0] = 7'b0000011;
+            machinecode[14:12] = 3'd0;
+            machinecode[11:7] = rd;
+            machinecode[19:15] = rs1;
+            machinecode[31:20] = imm;
+        end
+        lh : begin
+            machinecode[6:0] = 7'b0000011;
+            machinecode[14:12] = 3'd1;
+            machinecode[11:7] = rd;
+            machinecode[19:15] = rs1;
+            machinecode[31:20] = imm;
+        end
+        lbu : begin
+            machinecode[6:0] = 7'b0000011;
+            machinecode[14:12] = 3'd4;
+            machinecode[11:7] = rd;
+            machinecode[19:15] = rs1;
+            machinecode[31:20] = imm;
+        end
+        lhu : begin
+            machinecode[6:0] = 7'b0000011;
+            machinecode[14:12] = 3'd5;
+            machinecode[11:7] = rd;
+            machinecode[19:15] = rs1;
+            machinecode[31:20] = imm;
+        end
         sw : begin
             machinecode[6:0] = 7'b0100011;
             machinecode[14:12] = 3'd2;
+            machinecode[19:15] = rs2;
+            machinecode[24:20] = rs1;
+            machinecode[31:25] = imm[11:5];
+            machinecode[11:7] = imm[4:0];
+        end
+        sb : begin
+            machinecode[6:0] = 7'b0100011;
+            machinecode[14:12] = 3'd0;
+            machinecode[19:15] = rs2;
+            machinecode[24:20] = rs1;
+            machinecode[31:25] = imm[11:5];
+            machinecode[11:7] = imm[4:0];
+        end
+        sh : begin
+            machinecode[6:0] = 7'b0100011;
+            machinecode[14:12] = 3'd1;
             machinecode[19:15] = rs2;
             machinecode[24:20] = rs1;
             machinecode[31:25] = imm[11:5];

@@ -1,6 +1,7 @@
 module translator_tb;
     enum {lw, sw, add, sub, xorfunc, orfunc, andfunc, sll, srl, sra, slt, sltu, beq, addi,
-                  bne, blt, bge, bltu, bgeu, jal, jalr, lui, auipc} instructiontype;
+                  bne, blt, bge, bltu, bgeu, jal, jalr, lui, auipc, lb, lh, lbu, lhu,
+                  sb, sh} instructiontype;
     logic [4:0] rd, rs1, rs2;
     logic [11:0] imm;
     logic [31:0] machinecode;
@@ -21,39 +22,16 @@ module translator_tb;
         rs1 = '0;
         imm = '0;
         #5;
-
-        // instructiontype = addi;
-        // rd = 5'd1;
-        // rs1 = '0;
-        // imm = 12'd20;
-        // #10;
-
-        // instructiontype = addi;
-        // rd = 5'd2;
-        // rs1 = '0;
-        // imm = 12'd20;
-        // #10;
-
-        // instructiontype = addi;
-        // rd = 5'd3;
-        // rs1 = '0;
-        // imm = 12'd100;
-        // #10;
-
-        // instructiontype = jalr;
-        // rd = 5'd4;
-        // imm = 12'd8;
-        // rs1 = 5'd1;
-        // #10;
-
-        // instructiontype = addi;
-        // rd = 5'd0;
-        // rs1 = 5'd0;
-        // #10;
-
-        instructiontype = auipc;
+        instructiontype = lw;
         rd = 5'd1;
-        imm_20bits = 20'h00001;
+        rs1 = 5'd0;
+        imm = 12'd12;
+        #10;
+        instructiontype = lb;
+        rd = 5'd2;
+        rs1 = 5'd0;
+        imm = 12'd12;
+        #10;
         $finish;
     end
 endmodule
