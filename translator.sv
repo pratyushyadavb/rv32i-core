@@ -10,7 +10,7 @@ module assemblytranslator(
     input definitions::instruction_t [3:0] instruction,
     input logic [4:0] rd, rs1, rs2,
     input logic [11:0] imm,
-    input logic [20:0] imm_20bits,
+    input logic [19:0] imm_20bits,
     output logic [31:0] machinecode
 );
     always_comb begin
@@ -114,14 +114,64 @@ module assemblytranslator(
             machinecode[24:20] = rs2; //rs2
         end
         beq : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = '0;
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'b000;
             machinecode[19:15] = rs1;
             machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
+        end
+        bne : begin
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'd1;
+            machinecode[19:15] = rs1;
+            machinecode[24:20] = rs2;
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
+        end
+        blt : begin
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'd4;
+            machinecode[19:15] = rs1;
+            machinecode[24:20] = rs2;
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
+        end
+        bge : begin
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'd5;
+            machinecode[19:15] = rs1;
+            machinecode[24:20] = rs2;
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
+        end
+        bltu : begin
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'd6;
+            machinecode[19:15] = rs1;
+            machinecode[24:20] = rs2;
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
+        end
+        bgeu : begin
+            machinecode[6:0]   = 7'b1100011;
+            machinecode[14:12] = 3'd7;
+            machinecode[19:15] = rs1;
+            machinecode[24:20] = rs2;
+            machinecode[31]    = imm[11]; 
+            machinecode[30:25] = imm[10:5]; 
+            machinecode[11:8]  = imm[4:1]; 
+            machinecode[7]     = imm[11]; 
         end
         sll : begin
             machinecode[6:0] = 7'b0110011; //opcode
@@ -161,56 +211,6 @@ module assemblytranslator(
             machinecode[31:20] = imm[11:0]; //imm
             machinecode[11:7] = rd; //rd
             machinecode[19:15] = rs1; //rs1
-        end
-        bne : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = 3'd1;
-            machinecode[19:15] = rs1;
-            machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
-        end
-        blt : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = 3'd4;
-            machinecode[19:15] = rs1;
-            machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
-        end
-        bge : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = 3'b101;
-            machinecode[19:15] = rs1;
-            machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
-        end
-        bltu : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = 3'b110;
-            machinecode[19:15] = rs1;
-            machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
-        end
-        bgeu : begin
-            machinecode[6:0] = 7'b1100011;
-            machinecode[14:12] = 3'b111;
-            machinecode[19:15] = rs1;
-            machinecode[24:20] = rs2;
-            machinecode[31] = imm[11];
-            machinecode[30:25] = imm[9:4];
-            machinecode[11:8] = imm[3:0];
-            machinecode[7] = imm[10];
         end
         jal : begin
             machinecode[31] = imm_20bits[20];

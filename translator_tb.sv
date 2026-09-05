@@ -22,23 +22,28 @@ module translator_tb;
         rs1 = '0;
         imm = '0;
         #5;
-        instructiontype = lw;
+        instructiontype = addi;
         rd = 5'd1;
         rs1 = 5'd0;
-        imm = 12'd12;
+        imm = 12'd50;
         #10;
-        instructiontype = lb;
+
+        instructiontype = addi;
         rd = 5'd2;
         rs1 = 5'd0;
-        imm = 12'd12;
+        imm = 12'd50;
+        #10;
+
+        instructiontype = bne;
+        rs1 = 5'd1;
+        rs2 = 5'd2;
+        imm = 12'd16;
         #10;
         $finish;
     end
 endmodule
 
-//lw x4, 12(x0)
-//lw x3, 12(x0)
-//beq x3, x4, 1
-//sw x4, 4(x0)
-//add x2, x4, x3
-//typedef enum {lw, sw, add, sub, beq} instruction_t;
+
+
+//addi x1, x0, 50;
+//add x2, x1, x0;

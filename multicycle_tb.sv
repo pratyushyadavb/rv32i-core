@@ -9,9 +9,9 @@ module multicycle_tb;
     logic [31:0] mainimm;
     logic [31:0] pc, pc_new, oldpc, rd1, rd2, wd3, instr, rd, wd;
     state_t state, nextstate;
-    logic [31:0] alusrca, alusrcb, aluout, alulatch
+    logic [31:0] alusrca, alusrcb, aluout, alulatch;
 
-    always #5 clock = ~clock;
+    always #2 clock = ~clock;
 
     main_processor dut(
         .clock(clock),
@@ -33,7 +33,7 @@ module multicycle_tb;
     initial begin
         clock = 0;
         reset = 1;
-        #10;
+        #4;
         reset = 0;
         #100;
         $finish;

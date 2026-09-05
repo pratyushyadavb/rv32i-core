@@ -22,7 +22,7 @@ module memory(
     input logic clock, we, re,
     output logic [31:0] rd
 );
-    logic [31:0] ram [0:255] = '{3: 32'hDEAD_BEEF, default: 32'h0};
+    logic [31:0] ram [0:255] = '{128: 32'hDEAD_BEEF, default: 32'h0};
     logic [7:0] word_idx;
     assign word_idx = addr[9:2];
 
@@ -56,7 +56,7 @@ module memory(
     end
 
     always_comb begin
-        if (pc_read) rd <= ram[word_idx]; //for pc
+        if (pc_read) begin rd = ram[word_idx]; end//for pc
         else if (re) begin //need to implement the opcode 0 for when pc is reading
             case (funct3)
                 3'b000: begin // LB
@@ -90,9 +90,8 @@ module memory(
                 end
                 default: rd = ram[word_idx];
             endcase
-        end else begin
-            rd = 32'b0;
         end
+        else rd = 32'd0;
     end
 endmodule
 
@@ -155,6 +154,7 @@ module branch_selector(
             3'd7 : branch = carry;
             endcase
         end
+        else branch = '0;
     end
 endmodule
 
@@ -183,7 +183,8 @@ module datapath(
     logic [2:0] funct3formemory;
     
     
-    
+    assign wd = rd2;
+
     logic [31:0] datafrom_memory, a, b;
     
     logic zero, overflow, negative, carry;
@@ -193,7 +194,6 @@ module datapath(
     assign funct7 = instr[31:25];
     assign funct3 = instr[14:12];
     assign opcode = instr[6:0];
-    assign pc_new = alu_final_out;
 
     branch_selector main_branchselector(.opcode(opcode), .funct3(funct3), .carry(carry), .zero(zero),
                                         .negative(negative), .overflow(overflow), .branch(branch));
@@ -201,9 +201,11 @@ module datapath(
     always_comb begin
         if (immctrl == 3'd0) mainimm = {{20{instr[31]}}, instr[31:20]};
         else if (immctrl == 3'd1) mainimm = {{20{instr[31]}}, instr[31:25], instr[11:7]};
-        else if (immctrl == 3'd2) mainimm = {{20{instr[31]}}, instr[31], instr[7], instr[30:25], instr[4:1], 1'b0};
-        else if (immctrl == 3'd3) mainimm = {instr[31:20], {12{1'b0}}};
-        else if (immctrl == 3'd4) mainimm = {{12{instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'b0};
+        else if (immctrl == 3'd2) begin // B-Type
+            mainimm = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
+            end
+        else if (immctrl == 3'd3) mainimm = {instr[31:12], {12{1'b0}}};
+        else if (immctrl == 3'd4) mainimm = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
     end
 
     always_comb begin
@@ -233,7 +235,7 @@ module datapath(
     assign alu_final_out = (alump) ? alulatch : aluout;
     assign addr = (iord) ? alulatch : pc;
     assign funct3formemory = (funct3ctrl) ? 3'b010 : funct3;
-    
+    assign pc_new = (opcode == 7'b1100111) ? {alu_final_out[31:1], 1'b0} : alu_final_out;
     memory mainmemory(.addr(addr), .wd(wd), .funct3(funct3formemory), .clock(clock), .we(we),
                       .re(re), .rd(rd), .pc_read(pc_read));
 
@@ -260,7 +262,7 @@ module datapath(
         case (wd3ctrl)
         2'b00 : wd3 = datafrom_memory;
         2'b01 : wd3 = alu_final_out;
-        2'b10 : wd3 = pc;
+        2'b10 : wd3 = oldpc + 32'd4;
         2'b11 : wd3 = mainimm;
         endcase
     end
@@ -269,9 +271,9 @@ module datapath(
                 .zero(zero), .carry(carry), .negative(negative), .overflow(overflow));
 endmodule
 
-typedef enum logic [3:0] {
+typedef enum logic [4:0] {
     S0, S1, S2, S3, S4, S5, S6, S7, 
-    S8, S9, S10, S11, S12, S13, S14, S15
+    S8, S9, S10, S11, S12, S13, S14, S15, S16
 } state_t;
 
 module main_fsm(
@@ -334,7 +336,7 @@ module main_fsm(
             aluop = 2'b00;
         end
         S6 : begin
-            alump = '1;
+            // alump = '1;
             iord = '1;
             we = '1;
         end
@@ -345,7 +347,7 @@ module main_fsm(
         end
         S8 : begin
             alump = '1;
-            wd3ctrl = 3'b011;
+            wd3ctrl = 3'b001;
             we3 = '1;
         end
         S9 : begin
@@ -354,37 +356,50 @@ module main_fsm(
             aluop = 2'b10;
             immctrl = 3'b000;
         end
+        S16 : begin
+            alump = '1;
+            wd3ctrl = 2'b01;
+            we3 = '1;
+        end
         S10 : begin
             immctrl = 3'b011;
             wd3ctrl = 2'b11;
             we3 = '1;
         end
-        S11 : pcwrite = branch;
+        S11 : begin
+            srca = 2'b10;
+            srcb = 2'b00;
+            aluop = 2'b01;
+            alump = '1;
+            pcwrite = branch;
+        end
         S12 : begin
             immctrl = 3'b011;
             aluop = '0;
             srca = 2'b01;
             srcb = 2'b11;
             alump = '0;
+            wd3ctrl = 2'b01;
+            we3 = '1;
         end
         S13 : begin
             wd3ctrl = 2'b10;
             we3 = '1;
             srca = 2'b01;
             srcb = 2'b11;
-            immctrl = 3'b010;
+            immctrl = 3'b100;
             alump = '0;
+            pcwrite = '1;
         end
         S14 : begin
-            srca = 2'b01;
+            srca = 2'b10;
             srcb = 2'b11;
-            immctrl = 3'b100;
+            immctrl = 3'd0;
             aluop = '0;
             alump = '0;
-        end
-        S15 : begin
             we3 = '1;
-            wd3ctrl = 2'b01;
+            wd3ctrl = 2'b10;
+            pcwrite = '1;
         end
         endcase
     end
@@ -398,6 +413,7 @@ module main_fsm(
             7'b0100011 : nextstate = S5;
             7'b0110011 : nextstate = S7;
             7'b0010011 : nextstate = S9;
+            7'b1100011 : nextstate = S11;
             7'b0110111 : nextstate = S10;
             7'b0010111 : nextstate = S12;
             7'b1101111 : nextstate = S13;
@@ -411,13 +427,14 @@ module main_fsm(
         S5 : nextstate = S6;
         S6 : nextstate = S0;
         S7 : nextstate = S8;
-        S9 : nextstate = S0;
+        S8 : nextstate = S0;
+        S9 : nextstate = S16;
         S10 : nextstate = S0;
         S11 : nextstate = S0;
         S12 : nextstate = S0;
         S13 : nextstate = S0;
-        S14 : nextstate = S15;
-        S15 : nextstate = S0;
+        S14 : nextstate = S0;
+        S16 : nextstate = S0;
         endcase
     end
 endmodule
@@ -426,6 +443,7 @@ module alu_decoder(
     input logic [2:0] funct3,
     input logic [1:0] aluop,
     input logic [6:0] funct7,
+    input logic [6:0] opcode,
     output logic [3:0] alucontrol
 );
     always_comb begin
@@ -435,8 +453,10 @@ module alu_decoder(
         2'b10 : begin
             case (funct3)
             3'b000 : begin
-                if (funct7 == 7'd0) alucontrol = 4'b0000; //add
-                else if (funct7 == 7'h20) alucontrol = 4'b0001; //sub
+                // Only R-type (aluop == 2'b10) checks funct7 for SUB
+                if (aluop == 2'b10 && funct7 == 7'h20 && opcode == 7'b0110011) 
+                    alucontrol = 4'b0001; // SUB
+                else alucontrol = 4'b0000; // ADD / ADDI
             end
             3'd4 : alucontrol = 4'b0100; //xor
             3'd6 : alucontrol = 4'b0011; //or
@@ -445,11 +465,14 @@ module alu_decoder(
             3'd5 : begin
                 if (funct7 == 7'd0) alucontrol = 4'b0111; //srl
                 else if (funct7 == 7'h20) alucontrol = 4'b1000;
+                else alucontrol = 4'b0111;
             end
             3'd2 : alucontrol = 4'b0101;
             3'd3 : alucontrol = 4'b1001;
+            default : alucontrol = 4'd0;
             endcase
         end
+        default : alucontrol = 4'd0;
         endcase
     end
 endmodule
@@ -474,7 +497,8 @@ module control_unit(
                           .srca(srca), .srcb(srcb), .wd3ctrl(wd3ctrl), .aluop(aluop),
                           .immctrl(immctrl), .state(state), .nextstate(nextstate), .pc_read(pc_read));
 
-    alu_decoder main_aludecoder(.funct3(funct3), .aluop(aluop), .funct7(funct7), .alucontrol(aluctrl));
+    alu_decoder main_aludecoder(.funct3(funct3), .aluop(aluop), .funct7(funct7), .alucontrol(aluctrl),
+                                .opcode(opcode));
 endmodule
 
 module main_processor(

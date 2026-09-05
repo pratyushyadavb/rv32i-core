@@ -1,0 +1,60 @@
+lb1:
+On first appearance, the pc is not inheriting the value of pc_new because pc_new is only incrementing
+when the state is S1 after the first instruction(lw) is executed.
+Gonna check the alu inputs at that time to look for faults.
+fix-1: found that the multiplexer wires for alump were the other way around, fixed them and now the 
+pc is acquiring the value perfectly. yet the lb instruction hasnt executed correctly
+
+lb2:
+The lb2 image, the instruction lb x2, 8(x0) successfully fetched the first byte at index 3 of ram
+which was 0xdead_beef and successfully sign extended it and loaded 0xffff_ffef in x2
+
+lb3-lb4: the lb instruction was tested for all the locations in a word and was found to be
+successfully working.
+
+lh1-lh2: the lh instruction was tested and was found to be working successfully.
+
+sw1: The store instruction is not working properly. It should have stored the value from x1 in
+the data memory.
+
+sw2: Apparently i forgot to connect wd to rd2 so the word wasnt transferring from x1 to memory.
+Its fixed now and works successfully!
+
+addi1 : Testing this first to initialize registers easily.
+From initial glance, the we3 is staying at 0, and i have found that i am not updating its value in
+S9.
+
+addi2 : I forgot to add the actual write cycle to write the value back in the register, now it works
+fine.
+
+add1 : i am noticing that the state S8 remains constant for nextstate so im guessing 
+thats a problem.
+
+add2 : The problem was definitely S8, i missed the line to update S8 to S0, and i also selected 
+the wrong value for wd3ctrl which was earlier 011 and the correct value was 001. it works perfect now.
+
+beq1 : Noticed the state got set back to S0 for some reason. From further inspection, I missed writing
+the state updation for branch type instructions in the fsm.
+
+beq2 : Found that the srca multiplexer actually had the third source for 2'b11 and not for 2'b10, so Gonna
+fix it.
+
+beq3 : Now the beq instruction executes perfectly, but the immediate offset is being evaluated
+wrongly, i wanted to increment the pc by 8 but its evaluating it to 16. 
+
+beq4 : The immediate is evaluating perfectly now. the problem was in the translator, i was shifting
+the immediate by 1 bit, 2 times, one in the translator and the other in the datapath itself so it
+was multiplying by 2! fixed now. Also dont be confused, the pc needed to be set to 8(oldpc)+8(imm_offset),
+to a value of 16!
+
+lui : it was a stupid mistake i did, the mainimm was evaluating some other imm so i fixed it,
+and it works fine now.
+
+auipc : I didnt add the control signals to write it back in the wd3. it works good after that.
+
+jal : It was storing the value in rd successfully initially but was failing to increment the pc.
+After inspection, the control signals for mainimm were wrong and pcwrite wasnt being enabled at
+the state S13. It works fine now.
+
+jalr : It had slightly problems. the srca and srcb were wrong so had to correct them, the immctrl
+was also wrong, corrected it. and pcwrite wasnt being asserted so fixed that. Now works good.

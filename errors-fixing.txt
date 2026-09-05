@@ -1,6 +1,0 @@
-lb1:
-On first appearance, the pc is not inheriting the value of pc_new because pc_new is only incrementing
-when the state is S1 after the first instruction(lw) is executed.
-Gonna check the alu inputs at that time to look for faults.
-fix-1: found that the multiplexer wires for alump were the other way around, fixed them and now the 
-pc is acquiring the value perfectly. yet the lb instruction hasnt executed correctly
