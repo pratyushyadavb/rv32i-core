@@ -201,12 +201,12 @@ module datapath(
     
                                         
     always_comb begin
-        if (immctrl == 3'd0) mainimm = {{20{instr[31]}}, instr[31:20]};
-        else if (immctrl == 3'd1) mainimm = {{20{instr[31]}}, instr[31:25], instr[11:7]};
+        if (immctrl == 3'd0) mainimm = {{20{instr[31]}}, instr[31:20]}; //load
+        else if (immctrl == 3'd1) mainimm = {{20{instr[31]}}, instr[31:25], instr[11:7]}; //store
         else if (immctrl == 3'd2) begin // B-Type
             mainimm = {{20{instr[31]}}, instr[7], instr[30:25], instr[11:8], 1'b0};
             end
-        else if (immctrl == 3'd3) mainimm = {instr[31:12], {12{1'b0}}};
+        else if (immctrl == 3'd3) mainimm = {instr[31:12], {12{1'b0}}}; //lui/auipc
         else if (immctrl == 3'd4) mainimm = {{12{instr[31]}}, instr[19:12], instr[20], instr[30:21], 1'b0};
     end
     always_comb begin
@@ -341,24 +341,24 @@ module main_fsm(
             aluop = 2'b10;
             immctrl = 3'b000;
         end
-        S16 : begin
+        S10 : begin
             alump = '1;
             wd3ctrl = 2'b01;
             we3 = '1;
         end
-        S10 : begin
+        S11 : begin
             immctrl = 3'b011;
             wd3ctrl = 2'b11;
             we3 = '1;
         end
-        S11 : begin
+        S12 : begin
             srca = 2'b10;
             srcb = 2'b00;
             aluop = 2'b01;
             alump = '1;
             pcwrite = branch;
         end
-        S12 : begin
+        S13 : begin
             immctrl = 3'b011;
             aluop = '0;
             srca = 2'b01;
@@ -367,7 +367,7 @@ module main_fsm(
             wd3ctrl = 2'b01;
             we3 = '1;
         end
-        S13 : begin
+        S14 : begin
             wd3ctrl = 2'b10;
             we3 = '1;
             srca = 2'b01;
@@ -376,7 +376,7 @@ module main_fsm(
             alump = '0;
             pcwrite = '1;
         end
-        S14 : begin
+        S15 : begin
             srca = 2'b10;
             srcb = 2'b11;
             immctrl = 3'd0;
@@ -394,15 +394,15 @@ module main_fsm(
         S0 : nextstate = S1;
         S1 : begin
             case (opcode)
-            7'b0000011 : nextstate = S2;
-            7'b0100011 : nextstate = S5;
-            7'b0110011 : nextstate = S7;
-            7'b0010011 : nextstate = S9;
-            7'b1100011 : nextstate = S11;
-            7'b0110111 : nextstate = S10;
-            7'b0010111 : nextstate = S12;
-            7'b1101111 : nextstate = S13;
-            7'b1100111 : nextstate = S14;
+            7'b0000011 : nextstate = S2; //load
+            7'b0100011 : nextstate = S5; //store
+            7'b0110011 : nextstate = S7; //rtype
+            7'b0010011 : nextstate = S9; //itype
+            7'b0110111 : nextstate = S11; //lui
+            7'b1100011 : nextstate = S12; //branch
+            7'b0010111 : nextstate = S13; //auipc
+            7'b1101111 : nextstate = S14; //jal
+            7'b1100111 : nextstate = S15; //jalr
             default : nextstate = S0;
             endcase
         end
@@ -413,13 +413,13 @@ module main_fsm(
         S6 : nextstate = S0;
         S7 : nextstate = S8;
         S8 : nextstate = S0;
-        S9 : nextstate = S16;
+        S9 : nextstate = S10;
         S10 : nextstate = S0;
         S11 : nextstate = S0;
         S12 : nextstate = S0;
         S13 : nextstate = S0;
         S14 : nextstate = S0;
-        S16 : nextstate = S0;
+        S15 : nextstate = S0;
         endcase
     end
 endmodule
